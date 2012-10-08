@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+        PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+        "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+        
+<sqlMap namespace="location">
+  <resultMap id="result" class="com.hcl.air.domain.Location">
+    <result property="id" column="id" columnIndex="1"/>
+    <result property="code" column="code" columnIndex="2"/>
+    <result property="name" column="name" columnIndex="3"/>
+    <result property="city" column="city" columnIndex="4"/>
+    <result property="country" column="country" columnIndex="4"/>
+  </resultMap>
+  
+  <resultMap id="flight" class="com.hcl.air.domain.Flight">
+    <result property="id" column="id"/>
+	<result property="airline" column="airline"/>
+    <result property="startAirport" column="start_airport"/>
+    <result property="startTime" column="start_time"/>
+    <result property="endAirport" column="end_airport"/>
+    <result property="endTime" column="end_time"/>
+	<result property="stops" column="stops"/>
+	<result property="returnStartAirport" column="return_start_airport"/>
+    <result property="returnStartTime" column="return_start_time"/>
+    <result property="returnEndAirport" column="return_end_airport"/>
+    <result property="returnEndTime" column="return_end_time"/>
+	<result property="returnStops" column="return_stops"/>
+	<result property="price" column="price"/>
+  </resultMap>
+  
+  <resultMap id="deal" class="com.hcl.air.domain.Deal">
+    <result property="id" column="id"/>
+	<result property="locationCode" column="location_code"/>
+    <result property="price" column="price"/>
+    <result property="discount" column="discount"/>
+    <result property="event" column="event"/>
+	<result property="dates" column="dates"/>
+    <result property="place" column="place"/>
+  </resultMap>
+  
+  <select id="selectAll" resultMap="result">
+    SELECT l.id, l.code, l.name, l.city, l.country
+    FROM airdb.location l
+  </select>
+
+  <select id="selectById" resultMap="result">
+    SELECT l.id, l.code, l.name, l.city, l.country
+    FROM airdb.location l
+    WHERE id = #id#
+  </select>
+
+  <insert id="insert">
+    INSERT INTO airdb.location (code, name, city, country) values (#code#, #name#, #city#, #country#)
+    <selectKey resultClass="Long" keyProperty="id">
+    	SELECT LAST_INSERT_ID() as id
+    </selectKey>
+  </insert>
+  
+  <update id="update">
+    UPDATE airdb.location
+    SET code = #code#, name = #name#, city = #city#, country = #country#
+    WHERE id = #id#
+  </update>
+
+  <delete id="delete">
+    DELETE FROM airdb.location WHERE id = #id#
+  </delete>
+  
+  <select id="selectFlights" resultMap="flight">
+	select
+	  f.id,f.airline,
+	  f.start_airport,f.start_time,f.end_airport,f.end_time,f.stops,
+	  f.return_start_airport,f.return_start_time,f.return_end_airport,
+	  f.return_end_time,f.return_stops,
+	  f.price
+	from
+	  airdb.flights f
+	where f.start_airport=#origin#
+	and f.end_airport=#destination#
+  </select>
+  
+   <select id="selectFlightById" resultMap="flight">
+	select
+	  f.id,f.airline,
+	  f.start_airport,f.start_time,f.end_airport,f.end_time,f.stops,
+	  f.return_start_airport,f.return_start_time,f.return_end_airport,
+	  f.return_end_time,f.return_stops,
+	  f.price
+	from
+	  airdb.flights f
+	where f.id=#Value#
+  </select>
+  
+  <select id="selectDeals" resultMap="deal">
+	select
+	  d.id, d.location_code, d.dates, d.price, d.discount, d.event, d.place	  
+	from
+	  airdb.deals d
+	  where d.location_code=#Value#
+  </select>
+  
+  <select id="selectDealById" resultMap="deal" parameterClass="list">
+	select
+	  d.id, d.location_code, d.dates, d.price, d.discount, d.event, d.place	  
+	from
+	  airdb.deals d
+	  where d.id IN 
+	<dynamic prepend="">
+	  <iterate open="(" close=")" conjunction=",">
+		 #[]#
+	  </iterate>
+	</dynamic>
+  </select>
+</sqlMap>
